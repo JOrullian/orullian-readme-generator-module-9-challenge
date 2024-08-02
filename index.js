@@ -82,7 +82,7 @@ const questions = [
         message: 'Are there any third-party assets that require attribution?'
     },
     {
-        type: 'checkbox',
+        type: 'list',
         name: 'license',
         message: 'Which license did you use?',
         choices: [
