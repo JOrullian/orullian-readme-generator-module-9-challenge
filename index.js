@@ -1,44 +1,11 @@
 // Include packages needed for this application
-let inquirer = require('inquirer');
-let fs = require('fs');
-let generateMarkdown = require('./utils/generateMarkdown');
+const inquirer = require('inquirer');
+const fs = require('fs');
+const { renderLicenseBadge, renderLicenseLink, generateMarkdown } = require('./utils/generateMarkdown');
 
-const createTemplate = (answers, license) => {    
-
-    let template = `# ${answers.title}\n\n`;
-    template += `## Description\n${answers.description}\n\n
-    ## Installation\n${answers.installation}\n\n
-    ## Usage\n${answers.usage}\n\n
-    ![ADD_ALT_TEXT_FOR_SCREENSHOT](ADD_SCREENSHOT_LINK)\n\n
-    ## Credits\n
-    `;
-
-    if (answers.collaborators.length > 0) {
-        template += `### Collaborators\n`;
-        answers.collaborators.forEach(collaborator => {
-            template += `- [${collaborator.name}](${collaborator.github})\n`;
-        });
-    }
-    template += `\n`;
-
-    if (answers.thirdPartyAssets.length > 0) {
-        template += `### Third-Party Assets\n`;
-        answers.thirdPartyAssets.forEach(thirdPartyAsset => {
-            template += `- [${thirdPartyAsset.name}](${thirdPartyAsset.link})\n`;
-        });
-    }
-    template += `\n`;
-
-    template += `## License\n${licenseSection}\n\n
-    ## How To Contribute\n${answers.contribute}\n\n
-    `;
-
-    return template;
-}
-
-// Array to store collaborators from inquirer.prompt
-const collaborators = [];
-const thirdPartyAssets = []; 
+// Array to store collaborators and thirdPartyAssets from inquirer.prompt
+let collaborators = [];
+let thirdPartyAssets = [];
 
 // Async function to run when user accepts to add collaborators during inquirer.prompt.  Will collect collaborator name and Github link.
 const promptCollaborator = async () => {
@@ -61,11 +28,12 @@ const promptCollaborator = async () => {
     }
 }
 
+// Async function to run when user accepts to add thirdPartyAssets during inquirer.prompt.  Will collect thirdPartyAsset name and link.
 const promptThirdPartyAssets = async () => {
     const { thirdPartyAssetName } = await inquirer.prompt({
         type: 'input',
         name: 'thirdPartyAssetName',
-        message: 'Enter the name of a third-party asset:',
+        message: 'Enter the name of a third-party asset (leave blank to finish adding assets):',
     });
 
     if (thirdPartyAssetName !== '') {
@@ -81,7 +49,7 @@ const promptThirdPartyAssets = async () => {
     }
 }
 
-// TODO: Create an array of questions for user input
+// Array of questions for user input for inquirer.prompt
 const questions = [
     {
         type: 'input',
@@ -140,27 +108,66 @@ inquirer
     .prompt(questions)
     // Questions to add collaborator names and Github links.  Will open if user confirms at the addCollaborators prompt.
     .then(async (answers) => {
+        // Checks that addCollaborators prompt is true, if so, prompt to add collaboratorName and collaboratorGithub will show
         if (answers.addCollaborators) {
             await promptCollaborator();
         }
 
+        // Checks that addThirdPartyAssets prompt is true, if so, prompt to add thirdPartyAssetName and thirdPartyAssetLink will show
         if (answers.addThirdPartyAssets) {
             await promptThirdPartyAssets();
         }
 
+        const allAnswers = { ...answers, collaborators, thirdPartyAssets };
+
         console.log('Collaborators added:', collaborators);
         console.log('Third-party assets added:', thirdPartyAssets);
+
+        return allAnswers;
     })
-    // TODO: Create a function to write README file
-    .then((answers) => {
-        const markdownTemplate = createTemplate(answers);
+    // Function to write README file
+    .then((allAnswers) => {
+        const license = allAnswers.license;
+        const markdownTemplate = createTemplate(allAnswers, generateMarkdown(license));
         fs.writeFile('README.md', markdownTemplate, (err) => {
             err ? console.error(err) : console.log('Generated README.md');
-        })
+        });
     })
     .catch((error) => {
         console.error('An error has occurred:', error);
     });
+
+// README Template
+const createTemplate = (answers, license) => {    
+
+    let template = `# ${answers.title}\n\n`;
+    template += `## Description\n${answers.description}\n\n`;
+    template += `## Installation\n${answers.installation}\n\n`;
+    template += `## Usage\n${answers.usage}\n\n`
+    template += `![ADD_ALT_TEXT_FOR_SCREENSHOT](ADD_SCREENSHOT_LINK)\n\n`;
+    template += `## Credits\n`;
+
+    if (answers.collaborators.length > 0) {
+        template += `### Collaborators\n`;
+        answers.collaborators.forEach(collaborator => {
+            template += `- [${collaborator.name}](${collaborator.github})\n`;
+        });
+    }
+    template += `\n`;
+
+    if (answers.thirdPartyAssets.length > 0) {
+        template += `### Third-Party Assets\n`;
+        answers.thirdPartyAssets.forEach(thirdPartyAsset => {
+            template += `- [${thirdPartyAsset.name}](${thirdPartyAsset.link})\n`;
+        });
+    }
+    template += `\n`;
+
+    template += `## License\n${license}\n\n`;
+    template += `## How To Contribute\n${answers.contribute}\n\n`;
+
+    return template;
+}
 
 // TODO: Create a function to initialize app
 function init() {}
