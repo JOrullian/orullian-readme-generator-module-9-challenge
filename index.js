@@ -1,6 +1,47 @@
 // Include packages needed for this application
 let inquirer = require('inquirer');
 let fs = require('fs');
+let generateMarkdown = require('./utils/generateMarkdown');
+
+const createTemplate = ({ title, description, installation, usage, addCollaborators, addThirdPartyAssets, license, contribute, }) {    
+    const licenseMarkdown = renderLicenseBadge(license);
+    const licenseLink = renderLicenseLink(license);
+
+    const { license } = licenseMarkdown + licenseLink;
+
+
+    return `
+    # ${title}
+    
+    ## Description
+
+    ${description}
+    
+    ## Installation
+
+    ${installation}
+
+    ## Usage
+
+    ${usage}
+
+    ![ADD_ALT_TEXT_FOR_SCREENSHOT](ADD_SCREENSHOT_LINK)
+
+    ## Credits
+
+    ${addCollaborators}
+
+    ${addThirdPartyAssets}
+
+    ## License
+
+    ${license}
+
+    ## How to Contribute
+
+    ${contribute}
+    `
+}
 
 // Array to store collaborators from inquirer.prompt
 const collaborators = [];
@@ -52,7 +93,32 @@ const questions = [
         type: 'confirm',
         name: 'addCollaborators',
         message: 'Would you like to add collaborators?'
-    },    
+    },   
+    {
+        type: 'confirm',
+        name: 'addThirdPartyAssets',
+        message: 'Are there any third-party assets that require attribution?'
+    },
+    {
+        type: 'checkbox',
+        name: 'license',
+        message: 'Which license did you use?'
+        choices: [
+            'Apache 2.0',
+            'BSD 3-Clause',
+            'Eclipse Public License 1.0',
+            'GNU GPL v3',
+            'IBM Public License 1.0'
+            'MIT',
+            'Mozilla Public License 2.0',
+            'Attribution License (BY)',
+        ]
+    },
+    {
+        type: 'input',
+        name: 'contribute',
+        message: 'How can others contribute to your project?'
+    }
 ];
 
 inquirer
@@ -65,9 +131,17 @@ inquirer
         }
         console.log('Collaborators added:', collaborators);
     })
+    // TODO: Create a function to write README file
+    .then((answers) => {
+        const markdownTemplate = createTemplate(answers);
+        fs.writeFile('README.md', markdownTemplate, (err) => {
+            err ? console.error(err) : console.log('Generated README.md');
+        })
+    })
     .catch((error) => {
         console.error('An error has occurred:', error);
     });
+
 
 // TODO: Create a function to write README file
 function writeToFile(fileName, data) {}
