@@ -3,48 +3,42 @@ let inquirer = require('inquirer');
 let fs = require('fs');
 let generateMarkdown = require('./utils/generateMarkdown');
 
-const createTemplate = ({ title, description, installation, usage, addCollaborators, addThirdPartyAssets, license, contribute, }) {    
-    const licenseMarkdown = renderLicenseBadge(license);
-    const licenseLink = renderLicenseLink(license);
+const createTemplate = (answers, license) => {    
 
-    const { license } = licenseMarkdown + licenseLink;
+    let template = `# ${answers.title}\n\n`;
+    template += `## Description\n${answers.description}\n\n
+    ## Installation\n${answers.installation}\n\n
+    ## Usage\n${answers.usage}\n\n
+    ![ADD_ALT_TEXT_FOR_SCREENSHOT](ADD_SCREENSHOT_LINK)\n\n
+    ## Credits\n
+    `;
 
+    if (answers.collaborators.length > 0) {
+        template += `### Collaborators\n`;
+        answers.collaborators.forEach(collaborator => {
+            template += `- [${collaborator.name}](${collaborator.github})\n`;
+        });
+    }
+    template += `\n`;
 
-    return `
-    # ${title}
-    
-    ## Description
+    if (answers.thirdPartyAssets.length > 0) {
+        template += `### Third-Party Assets\n`;
+        answers.thirdPartyAssets.forEach(thirdPartyAsset => {
+            template += `- [${thirdPartyAsset.name}](${thirdPartyAsset.link})\n`;
+        });
+    }
+    template += `\n`;
 
-    ${description}
-    
-    ## Installation
+    template += `## License\n${licenseSection}\n\n
+    ## How To Contribute\n${answers.contribute}\n\n
+    `;
 
-    ${installation}
-
-    ## Usage
-
-    ${usage}
-
-    ![ADD_ALT_TEXT_FOR_SCREENSHOT](ADD_SCREENSHOT_LINK)
-
-    ## Credits
-
-    ${addCollaborators}
-
-    ${addThirdPartyAssets}
-
-    ## License
-
-    ${license}
-
-    ## How to Contribute
-
-    ${contribute}
-    `
+    return template;
 }
 
 // Array to store collaborators from inquirer.prompt
 const collaborators = [];
+const thirdPartyAssets = []; 
 
 // Async function to run when user accepts to add collaborators during inquirer.prompt.  Will collect collaborator name and Github link.
 const promptCollaborator = async () => {
@@ -64,6 +58,26 @@ const promptCollaborator = async () => {
         collaborators.push({ name: collaboratorName, github: collaboratorGithub });
 
         await promptCollaborator();
+    }
+}
+
+const promptThirdPartyAssets = async () => {
+    const { thirdPartyAssetName } = await inquirer.prompt({
+        type: 'input',
+        name: 'thirdPartyAssetName',
+        message: 'Enter the name of a third-party asset:',
+    });
+
+    if (thirdPartyAssetName !== '') {
+        const { thirdPartyAssetLink } = await inquirer.prompt({
+            type: 'input',
+            name: 'thirdPartyAssetLink',
+            message: `Enter the link for ${thirdPartyAssetName}:`
+        });
+
+        thirdPartyAssets.push({ name: thirdPartyAssetName, link: thirdPartyAssetLink });
+
+        await promptThirdPartyAssets();
     }
 }
 
@@ -102,13 +116,13 @@ const questions = [
     {
         type: 'checkbox',
         name: 'license',
-        message: 'Which license did you use?'
+        message: 'Which license did you use?',
         choices: [
             'Apache 2.0',
             'BSD 3-Clause',
             'Eclipse Public License 1.0',
             'GNU GPL v3',
-            'IBM Public License 1.0'
+            'IBM Public License 1.0',
             'MIT',
             'Mozilla Public License 2.0',
             'Attribution License (BY)',
@@ -129,7 +143,13 @@ inquirer
         if (answers.addCollaborators) {
             await promptCollaborator();
         }
+
+        if (answers.addThirdPartyAssets) {
+            await promptThirdPartyAssets();
+        }
+
         console.log('Collaborators added:', collaborators);
+        console.log('Third-party assets added:', thirdPartyAssets);
     })
     // TODO: Create a function to write README file
     .then((answers) => {
@@ -141,10 +161,6 @@ inquirer
     .catch((error) => {
         console.error('An error has occurred:', error);
     });
-
-
-// TODO: Create a function to write README file
-function writeToFile(fileName, data) {}
 
 // TODO: Create a function to initialize app
 function init() {}
