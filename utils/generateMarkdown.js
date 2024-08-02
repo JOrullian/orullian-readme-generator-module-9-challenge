@@ -19,13 +19,13 @@ function renderLicenseBadge(license) {
     license = 'ODC_BY';
   }
 
-  const licenseMarkdown = `![License: MIT](https://img.shields.io/badge/License-${license}-green.svg)`;
+  const licenseBadge = `![License: MIT](https://img.shields.io/badge/License-${license}-green.svg)`;
 
   if (license === '') {
     return '';
   }
 
-  return licenseMarkdown;
+  return licenseBadge;
 }
 
 // TODO: Create a function that returns the license link
