@@ -1,13 +1,16 @@
-# 
+# a
 
 ## Description
+a
 
+- [Installation](#installation)
+- [How to Contribute](#how-to-contribute)
 
 ## Installation
-
+a
 
 ## Usage
-
+a
 
 ![ADD_ALT_TEXT_FOR_SCREENSHOT](ADD_SCREENSHOT_LINK)
 
@@ -15,8 +18,8 @@
 
 
 ## License
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 ## How To Contribute
-
+a
 
