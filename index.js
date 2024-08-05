@@ -153,7 +153,7 @@ function init() {
         .then((allAnswers) => {
             const license = allAnswers.license;
             const markdownTemplate = createTemplate(allAnswers, generateMarkdown(license));
-            fs.writeFile('README.md', markdownTemplate, (err) => {
+            fs.writeFile('sample-README.md', markdownTemplate, (err) => {
                 err ? console.error(err) : console.log('Generated README.md');
             });
         })
